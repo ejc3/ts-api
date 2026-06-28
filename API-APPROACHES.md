@@ -233,15 +233,17 @@ src/
   `@trpc/server` 11.x, `@connectrpc/connect` 2.x, Zod 4.x, pinned exactly and verified under
   `nodejs_compat`.
 
-## Open questions
+## Decisions
 
-1. **Primary platform** — is one of Vercel / Cloudflare canonical and the other a portability
-   proof, or both co-equal? This drives the datastore choice.
-2. **Shared datastore** — D1 is native on Cloudflare; the Vercel path needs a match, libSQL/Turso
-   or Postgres.
-3. **Subscriptions** — queries + mutations only, or include subscriptions and the platform work?
-4. **Surface shape** — four routes under one deployment, or one deployable per style.
-5. **Auth depth** — stubbed JWT for the demo, or a real provider like Clerk/Auth0.
+1. **Platforms are co-equal** — Vercel and Cloudflare are both first-class targets; neither is a
+   mere portability proof.
+2. **Datastore is SQLite** — D1 on Cloudflare, Turso/libSQL on Vercel, one `DataStore` interface
+   over both.
+3. **Subscriptions are in scope** — including the platform-specific transport work for fan-out.
+4. **One deployment** — all four styles under a single deployable if it can be composed cleanly;
+   gRPC/Connect rides the Vercel/Node path within it.
+5. **Auth is a stub JWT** for now, behind the shared `core` middleware so a real provider can
+   replace it later.
 
 ## Sources
 

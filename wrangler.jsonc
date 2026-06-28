@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "ts-api",
+  "main": "src/adapters/cloudflare.ts",
+  "compatibility_date": "2026-03-17",
+  "compatibility_flags": ["nodejs_compat"],
+  "account_id": "3d993cbea58e237ee54616991fe5a622",
+  "observability": { "enabled": true }
+}
