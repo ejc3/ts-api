@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildApp } from '../src/app'
+import { buildApp, STYLES } from '../src/app'
 
 describe('REST (integration)', () => {
   it('lists seeded users', async () => {
@@ -53,9 +53,9 @@ describe('REST (integration)', () => {
     })
   })
 
-  it('reports mounted styles at the root', async () => {
+  it('echoes the mounted styles at the root', async () => {
     const res = await buildApp().request('/')
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ ok: true, styles: ['rest'] })
+    expect(await res.json()).toEqual({ ok: true, styles: [...STYLES] })
   })
 })

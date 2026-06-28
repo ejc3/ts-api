@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
 import { type Config, configFromEnv, type DataStore, InMemoryStore } from './core/index'
 import { createRest } from './rest/users'
+import { createTrpcHandler } from './trpc/index'
 
 /** Demo seed. Non-durable: lives in the isolate until PR5 wires D1/Turso. */
 const SEED = [
@@ -9,9 +10,10 @@ const SEED = [
 ] as const
 
 const API_BASE = '/api'
+const TRPC_BASE = '/trpc'
 
 /** The styles currently mounted; grows as each demo PR lands. */
-export const STYLES = ['rest'] as const
+export const STYLES = ['rest', 'trpc'] as const
 
 export type Variables = { config: Config }
 
@@ -40,5 +42,8 @@ export function buildApp(
   // Fetch-native styles mount here via app.route / app.all(c.req.raw). gRPC and
   // Express are Node-only and attach through their own adapters (see API-APPROACHES.md).
   app.route(API_BASE, createRest(store))
+
+  const trpc = createTrpcHandler(store, TRPC_BASE)
+  app.all(`${TRPC_BASE}/*`, (c) => trpc(c.req.raw))
   return app
 }
