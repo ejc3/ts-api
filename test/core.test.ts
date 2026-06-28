@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { configFromEnv, InMemoryStore, verifyBearer } from '../src/core/index'
+import { configFromEnv, InMemoryStore, normalizeUserName, verifyBearer } from '../src/core/index'
 
 describe('InMemoryStore', () => {
   it('reads seeded users and returns null for unknown ids', async () => {
@@ -26,6 +26,19 @@ describe('configFromEnv', () => {
     expect(configFromEnv({ JWT_SECRET: '' }).jwtSecret).toBe('dev-secret')
     // a non-string Workers binding must not become Config.jwtSecret
     expect(configFromEnv({ JWT_SECRET: 123 as unknown as string }).jwtSecret).toBe('dev-secret')
+  })
+})
+
+describe('normalizeUserName', () => {
+  it('trims surrounding whitespace', () => {
+    expect(normalizeUserName('  Grace  ')).toBe('Grace')
+  })
+  it('returns null for empty or whitespace-only names', () => {
+    expect(normalizeUserName('')).toBeNull()
+    expect(normalizeUserName('   ')).toBeNull()
+  })
+  it('keeps a name that only needs no trimming', () => {
+    expect(normalizeUserName('Ada')).toBe('Ada')
   })
 })
 

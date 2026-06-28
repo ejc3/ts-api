@@ -1,6 +1,6 @@
 import SchemaBuilder from '@pothos/core'
 import { GraphQLError } from 'graphql'
-import type { DataStore, User } from '../core/index'
+import { type DataStore, normalizeUserName, type User } from '../core/index'
 
 export interface GraphQLContext {
   store: DataStore
@@ -39,8 +39,8 @@ builder.mutationType({
       type: 'User',
       args: { name: t.arg.string({ required: true }) },
       resolve: (_root, args, ctx) => {
-        const name = args.name.trim()
-        if (name === '') {
+        const name = normalizeUserName(args.name)
+        if (name === null) {
           throw new GraphQLError('name must not be empty', {
             extensions: { code: 'BAD_USER_INPUT' },
           })
