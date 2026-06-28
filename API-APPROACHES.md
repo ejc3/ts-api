@@ -1,8 +1,9 @@
 # TypeScript API Approaches — REST, GraphQL, tRPC, gRPC (2026)
 
-This repo demos four API styles — REST, GraphQL, tRPC, and gRPC/Connect — that run on
-**Vercel or Cloudflare** from one core. Each is a Web **Fetch API** handler, so the core is
-`(Request) => Response` and only the per-platform entry adapter changes.
+This repo demos four API styles — REST, GraphQL, tRPC, and gRPC/Connect — on **Vercel or
+Cloudflare**. REST, GraphQL, and tRPC are Web **Fetch API** handlers that share one core and
+both platform adapters. gRPC/Connect is the exception: ConnectRPC has no native edge Fetch
+adapter, so it runs through Connect's Node adapter on the Vercel path.
 
 ## TL;DR — the demos
 
@@ -11,7 +12,7 @@ This repo demos four API styles — REST, GraphQL, tRPC, and gRPC/Connect — th
 | **REST** | **Hono** + `@hono/zod-openapi` |
 | **GraphQL** | **GraphQL Yoga** + **Pothos** code-first schema |
 | **tRPC** | `@trpc/server` fetch adapter |
-| **gRPC** | **ConnectRPC** (`@connectrpc/connect`), protobuf services over HTTP |
+| **gRPC** | **ConnectRPC** (`@connectrpc/connect`), protobuf services via Connect's Node adapter |
 | **Validation / types** | **Zod** via Standard Schema, swappable for Valibot/ArkType |
 | **Portability** | Web-standard `Request`/`Response`; one core, per-platform entry adapter |
 
@@ -136,44 +137,64 @@ contract a non-TS consumer can read.
 
 ## gRPC: ConnectRPC
 
-Protobuf is the contract; Connect serves it as Connect, gRPC, and gRPC-Web over one HTTP
-handler, so polyglot and browser clients both work:
+Protobuf is the contract; Connect serves it as Connect, gRPC, and gRPC-Web from one endpoint:
 
 ```protobuf
 // proto/user.proto
+syntax = "proto3";
+package user.v1;
+
+message GetUserRequest { string id = 1; }
+message User { string id = 1; string name = 2; }
+
 service UserService {
   rpc GetUser(GetUserRequest) returns (User);
 }
 ```
 
 ```ts
-// src/grpc/service.ts — implement the generated service interface
+// src/grpc/service.ts — register the generated service descriptor (protoc-gen-es v2)
 import type { ConnectRouter } from '@connectrpc/connect'
-import { UserService } from './gen/user_connect'
+import { UserService } from './gen/user_pb'
 
 export const routes = (r: ConnectRouter) =>
   r.service(UserService, { getUser: async (req) => ({ id: req.id, name: 'Ada' }) })
 ```
 
-`@connectrpc/connect` exposes the routes as a Fetch handler, so the same service mounts on the
-Vercel and Cloudflare adapters alongside the others. gRPC-Web means no sidecar proxy is needed
-for browser clients.
+Connect's official server adapters are Node, Express, Fastify, and Next — there is no native
+edge Fetch adapter in v2 — so gRPC rides the Vercel/Node path, not a Workers Fetch handler. On
+an HTTP/2-capable Node adapter the one endpoint serves Connect, gRPC, and gRPC-Web together, so
+browser clients need no Envoy sidecar.
 
 ## Portability contract
 
-Every style above is a Fetch handler. Each exports two ways:
+REST, GraphQL, and tRPC are Fetch handlers, so they compose under one Hono app that both
+adapters export:
 
 ```ts
-// src/adapters/cloudflare.ts
-import { rest } from '../rest/users'
-export default { fetch: rest.fetch }
+// src/app.ts
+import { Hono } from 'hono'
+import { rest } from './rest/users'
+import { yoga } from './graphql'
+import { trpc } from './trpc'
+
+export const app = new Hono()
+  .route('/api', rest)
+  .all('/graphql', (c) => yoga.fetch(c.req.raw))
+  .all('/trpc/*', (c) => trpc(c.req.raw))
 ```
 
 ```ts
-// src/adapters/vercel.ts
-import { rest } from '../rest/users'
-export const GET = rest.fetch
-export const POST = rest.fetch
+// src/adapters/cloudflare.ts
+import { app } from '../app'
+export default { fetch: app.fetch }
+```
+
+```ts
+// src/adapters/vercel.ts — same app; Connect/gRPC attaches here via its Node adapter
+import { app } from '../app'
+export const GET = app.fetch
+export const POST = app.fetch
 ```
 
 ```toml
@@ -208,7 +229,7 @@ src/
 - **Auth** — Bearer JWT validated in shared `core` middleware, reused across all four styles.
 - **Testing** — Vitest unit tests on schemas/resolvers/handlers; smoke tests run each Fetch
   handler in-process and under `wrangler dev`. CI gate: lint + `tsc --noEmit` + `vitest run`.
-- **Versions** — Node 24 LTS, TypeScript 5.x, Hono 4.x, `graphql-yoga` 5.x, Pothos 4.x,
+- **Versions** — Node 24 LTS, TypeScript 6.x, Hono 4.x, `graphql-yoga` 5.x, Pothos 4.x,
   `@trpc/server` 11.x, `@connectrpc/connect` 2.x, Zod 4.x, pinned exactly and verified under
   `nodejs_compat`.
 
