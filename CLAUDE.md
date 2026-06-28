@@ -67,12 +67,24 @@ a short list and surface them rather than silently resolving them.
 
 Plain technical prose. Match it in new docs, comments, commit messages, and replies.
 
+- **Show, don't tell.** Demonstrate a capability with a minimal code or config snippet
+  instead of describing it in prose. A five-line example that compiles beats a paragraph
+  asserting what the tool does. This is the default for any "framework X gives you Y" claim.
+- **Assume a smart reader.** They can read code and follow an argument. Do not restate the
+  obvious, re-explain a snippet line by line, or babysit. Cut anything the reader already knows.
+- **Parentheticals must earn their place.** A paren carrying a citation or real information
+  stays; a paren restating something already obvious from the sentence gets deleted.
 - **No marketing or promotional language.** No "blazing fast", "powerful", "seamless",
-  "effortless", "game-changing". (Plain technical uses are fine — "robust to X" meaning
-  resilient.) Describe what something does and what it costs.
+  "effortless", "game-changing". Plain technical uses like "robust to X" are fine.
 - **State results plainly; do not hedge.** A real limitation is a fact, not an apologetic
-  caveat. Avoid filler ("it's worth noting", "of course", "simply", "just").
-- **Every claim is backed by evidence.** No unbacked superlatives.
+  caveat. Avoid filler — "it's worth noting", "of course", "simply", "just". Drop reliability
+  hedging on cited figures — "treat as directional", "varies by harness", "not a guarantee".
+  Cite the source and state the number.
+- **A shared document holds only the final state.** Never narrate self-correction or process
+  in a doc we share — no "changed X to Y", "previously we said", "on reflection",
+  "assumed vs verified". Corrections happen in the edit; the reader sees only the result.
+- **Every claim is backed by evidence, cited inline** next to the figure, not just listed at
+  the end. Do not invent a fact you cannot cite — soften or cut it. No unbacked superlatives.
 - **Lead with the result,** then the detail. Be terse.
 
 ## Working in this repo
