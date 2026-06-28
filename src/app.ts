@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { type Config, configFromEnv, type DataStore, InMemoryStore } from './core/index'
+import { createYogaHandler } from './graphql/index'
 import { createRest } from './rest/users'
 import { createTrpcHandler } from './trpc/index'
 
@@ -11,9 +12,10 @@ const SEED = [
 
 const API_BASE = '/api'
 const TRPC_BASE = '/trpc'
+const GRAPHQL_BASE = '/graphql'
 
 /** The styles currently mounted; grows as each demo PR lands. */
-export const STYLES = ['rest', 'trpc'] as const
+export const STYLES = ['rest', 'trpc', 'graphql'] as const
 
 export type Variables = { config: Config }
 
@@ -45,5 +47,8 @@ export function buildApp(
 
   const trpc = createTrpcHandler(store, TRPC_BASE)
   app.all(`${TRPC_BASE}/*`, (c) => trpc(c.req.raw))
+
+  const yoga = createYogaHandler(store, GRAPHQL_BASE)
+  app.all(GRAPHQL_BASE, (c) => yoga(c.req.raw))
   return app
 }

@@ -33,14 +33,25 @@ describe('REST (integration)', () => {
     expect(await res.json()).toMatchObject({ name: 'Grace' })
   })
 
-  it('rejects an invalid create body with a clean error', async () => {
+  it('rejects an empty or whitespace-only name with a clean error', async () => {
+    for (const name of ['', '   ']) {
+      const res = await buildApp().request('/api/users', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ name }),
+      })
+      expect(res.status).toBe(400)
+      expect(await res.json()).toEqual({ error: 'invalid request' })
+    }
+  })
+
+  it('trims the stored name', async () => {
     const res = await buildApp().request('/api/users', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ name: '' }),
+      body: JSON.stringify({ name: '  Grace  ' }),
     })
-    expect(res.status).toBe(400)
-    expect(await res.json()).toEqual({ error: 'invalid request' })
+    expect(await res.json()).toMatchObject({ name: 'Grace' })
   })
 
   it('serves an OpenAPI document whose server base is the mount path', async () => {

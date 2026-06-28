@@ -3,7 +3,7 @@ import type { DataStore } from '../core/index'
 
 const UserSchema = z.object({ id: z.string(), name: z.string() }).openapi('User')
 const ErrorSchema = z.object({ error: z.string() }).openapi('Error')
-const CreateUserSchema = z.object({ name: z.string().min(1) }).openapi('CreateUser')
+const CreateUserSchema = z.object({ name: z.string().trim().min(1) }).openapi('CreateUser')
 
 const jsonError = (description: string) => ({
   content: { 'application/json': { schema: ErrorSchema } },
