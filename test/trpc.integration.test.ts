@@ -50,8 +50,13 @@ describe('tRPC (integration)', () => {
     expect(await client.users.create.mutate({ name: 'Grace' })).toMatchObject({ name: 'Grace' })
   })
 
-  it('rejects an invalid create input', async () => {
+  it('rejects an empty or whitespace-only name', async () => {
     await expect(client.users.create.mutate({ name: '' })).rejects.toThrow()
+    await expect(client.users.create.mutate({ name: '   ' })).rejects.toThrow()
+  })
+
+  it('trims the stored name', async () => {
+    expect(await client.users.create.mutate({ name: '  Grace  ' })).toMatchObject({ name: 'Grace' })
   })
 
   it('resolves several procedures in one batch', async () => {
