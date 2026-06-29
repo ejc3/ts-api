@@ -57,10 +57,11 @@ jobs:
         if: github.event_name != 'workflow_dispatch'
         run: |
           for i in $(seq 1 60); do
-            # --branch main pins this to the push-to-main CI run, never a pull_request run
-            # that might share the SHA (so a PR's green run can't promote a main commit).
-            verdict=$(gh run list --commit "$GITHUB_SHA" --workflow CI --branch main --limit 1 \
-              --json status,conclusion --jq '.[0] | (.status + "/" + (.conclusion // "-"))' 2>/dev/null || echo "")
+            # Pin this to the push-to-main CI run for this commit — never a pull_request
+            # run that might share the SHA/branch — so a PR's green run can't promote a
+            # main commit whose push CI is red.
+            verdict=$(gh run list --commit "$GITHUB_SHA" --workflow CI --branch main --event push \
+              --limit 1 --json status,conclusion --jq '.[0] | (.status + "/" + (.conclusion // "-"))' 2>/dev/null || echo "")
             echo "CI: ${verdict:-<no run yet>}"
             case "$verdict" in
               completed/success) exit 0 ;;
