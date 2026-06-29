@@ -1,6 +1,7 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
+  "git": { "deploymentEnabled": { "main": false } },
   "rewrites": [
     { "source": "/bench-socket", "destination": "/api/bench-socket" },
     { "source": "/user.v1.UserService/(.*)", "destination": "/api/grpc" },
