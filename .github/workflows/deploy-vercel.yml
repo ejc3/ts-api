@@ -38,9 +38,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      # vercel build runs the project's own install, which is pnpm here (detected from
+      # pnpm-lock.yaml), so pnpm must be on PATH or the build fails with spawn pnpm ENOENT.
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+          cache: pnpm
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
       - name: Pull production project settings + env
