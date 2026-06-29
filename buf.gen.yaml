@@ -1,0 +1,10 @@
+version: v2
+# Wipe the output dir before generating so a renamed or deleted proto can't leave a
+# stale *_pb.ts behind that the CI drift check would pass over.
+clean: true
+plugins:
+  - local: protoc-gen-es
+    out: src/grpc/gen
+    opt:
+      - target=ts
+      - import_extension=js

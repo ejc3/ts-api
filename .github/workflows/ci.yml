@@ -21,6 +21,13 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - name: Protobuf codegen is up to date
+        # git add -N stages untracked files as empty so a newly generated file
+        # surfaces in the diff instead of slipping past --exit-code.
+        run: |
+          pnpm exec buf generate
+          git add -N src/grpc/gen
+          git diff --exit-code src/grpc/gen
       - name: Format + lint (biome)
         run: pnpm exec biome ci .
       - name: Typecheck

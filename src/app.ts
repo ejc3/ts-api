@@ -1,14 +1,8 @@
 import { Hono } from 'hono'
-import { type Config, configFromEnv, type DataStore, InMemoryStore } from './core/index'
+import { type Config, configFromEnv, type DataStore, DEMO_USERS, InMemoryStore } from './core/index'
 import { createYogaHandler } from './graphql/index'
 import { createRest } from './rest/users'
 import { createTrpcHandler } from './trpc/index'
-
-/** Demo seed. Non-durable: lives in the isolate until PR5 wires D1/Turso. */
-const SEED = [
-  { id: '1', name: 'Ada' },
-  { id: '2', name: 'Linus' },
-] as const
 
 const API_BASE = '/api'
 const TRPC_BASE = '/trpc'
@@ -29,7 +23,7 @@ function readEnv(workerEnv: unknown): Record<string, string | undefined> {
 
 /** Compose every API style onto one Fetch handler over a shared DataStore. */
 export function buildApp(
-  store: DataStore = new InMemoryStore(SEED),
+  store: DataStore = new InMemoryStore(DEMO_USERS),
 ): Hono<{ Variables: Variables }> {
   const app = new Hono<{ Variables: Variables }>()
 

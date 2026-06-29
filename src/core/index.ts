@@ -1,4 +1,6 @@
 export { verifyBearer } from './auth'
 export { configFromEnv } from './config'
+export { DEMO_USERS } from './seed'
 export { InMemoryStore } from './store'
 export type { Config, DataStore, Principal, User } from './types'
+export { normalizeUserName } from './validation'
