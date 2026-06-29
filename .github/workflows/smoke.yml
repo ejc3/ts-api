@@ -1,0 +1,26 @@
+name: Smoke (production)
+
+# Read-only liveness check of both production deployments. Runs on demand and on a
+# daily schedule; it never writes, so it leaves no rows behind. The Cloudflare deploy
+# also smokes the Worker inline (deploy-cloudflare.yml); this covers Vercel, whose
+# deploy is driven by the git integration, and re-checks both on a schedule.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 8 * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Vercel — all five styles
+        run: node scripts/smoke.mjs --url https://ts-api.vercel.app
+      - name: Cloudflare Worker — the three Fetch styles
+        run: node scripts/smoke.mjs --url https://ts-api.ejc3-ts.workers.dev --styles rest,trpc,graphql
