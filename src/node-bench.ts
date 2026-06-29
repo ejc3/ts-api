@@ -1,4 +1,4 @@
-import { createServer, type Server } from 'node:http'
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { getRequestListener } from '@hono/node-server'
 import express from 'express'
 import { buildApp } from './app.js'
@@ -6,8 +6,8 @@ import {
   ALL_STYLES,
   clampN,
   MAX_NET_N,
-  measureStyle,
-  type Summary,
+  measureStyles,
+  type StyleResults,
   selectStyles,
 } from './bench-core.js'
 import type { DataStore } from './core/index.js'
@@ -30,14 +30,21 @@ import { createGrpcNodeHandler } from './grpc/node.js'
 const GRPC_PREFIX = '/user.v1.'
 const EXPRESS_PREFIX = '/express'
 
-/** One server fronting all five frameworks, dispatched by path prefix. */
-function buildUnifiedServer(store: DataStore): Server {
+/** A request listener dispatching all five frameworks by path prefix. */
+export type Dispatch = (req: IncomingMessage, res: ServerResponse) => void
+
+/**
+ * Build the dispatcher fronting all five frameworks. The handlers depend only on `store`, so a
+ * caller builds this once (e.g. at module load) and reuses it across bench runs; only the
+ * `http.Server` around it is per-run.
+ */
+export function buildUnifiedDispatcher(store: DataStore): Dispatch {
   const hono = getRequestListener(buildApp(store).fetch)
   const grpc = createGrpcNodeHandler(store)
   const expressRoot = express()
   expressRoot.use(EXPRESS_PREFIX, createExpressApp(store))
 
-  return createServer((req, res) => {
+  return (req, res) => {
     const url = req.url ?? '/'
     if (url.startsWith(GRPC_PREFIX)) {
       grpc(req, res)
@@ -46,7 +53,7 @@ function buildUnifiedServer(store: DataStore): Server {
     } else {
       hono(req, res)
     }
-  })
+  }
 }
 
 function listen(server: Server): Promise<string> {
@@ -73,24 +80,20 @@ export type SocketBenchResult = {
   mode: 'socket'
   transport: string
   n: number
-  styles: Record<string, { hello: Summary; list: Summary }>
+  styles: StyleResults
 }
 
 /** Run the socket bench for the requested styles, tearing the server down afterward. */
 export async function benchOverSocket(
-  store: DataStore,
+  dispatch: Dispatch,
   query: { n?: string | undefined; styles?: string | undefined },
 ): Promise<SocketBenchResult> {
   const n = clampN(query.n, MAX_NET_N)
   const styles = selectStyles(query.styles, Object.keys(ALL_STYLES))
-  const server = buildUnifiedServer(store)
+  const server = createServer(dispatch)
   try {
     const base = await listen(server)
-    const out: Record<string, { hello: Summary; list: Summary }> = {}
-    for (const style of styles) {
-      const probes = ALL_STYLES[style as keyof typeof ALL_STYLES]
-      out[style] = await measureStyle(probes, (p) => fetch(`${base}${p.path}`, p.init), n)
-    }
+    const out = await measureStyles(ALL_STYLES, styles, (p) => fetch(`${base}${p.path}`, p.init), n)
     return { mode: 'socket', transport: 'node:http over 127.0.0.1', n, styles: out }
   } finally {
     // Close only if the bind succeeded; closing a never-listening server throws.

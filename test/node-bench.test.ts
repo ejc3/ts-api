@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import { DEMO_USERS, InMemoryStore } from '../src/core/index.js'
-import { benchOverSocket } from '../src/node-bench.js'
+import { benchOverSocket, buildUnifiedDispatcher } from '../src/node-bench.js'
+
+const dispatcher = () => buildUnifiedDispatcher(new InMemoryStore(DEMO_USERS))
 
 describe('socket bench (node:http over loopback)', () => {
   it('times hello and list for all five frameworks over a real socket', async () => {
-    const result = await benchOverSocket(new InMemoryStore(DEMO_USERS), { n: '2' })
+    const result = await benchOverSocket(dispatcher(), { n: '2' })
     expect(result.mode).toBe('socket')
     expect(result.n).toBe(2)
     // The unified server fronts every framework, including the Node-only gRPC and Express
@@ -24,7 +26,7 @@ describe('socket bench (node:http over loopback)', () => {
   })
 
   it('honors the styles filter and clamps n', async () => {
-    const result = await benchOverSocket(new InMemoryStore(DEMO_USERS), {
+    const result = await benchOverSocket(dispatcher(), {
       n: '9999',
       styles: 'grpc,express',
     })

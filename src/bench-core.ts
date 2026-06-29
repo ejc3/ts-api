@@ -67,6 +67,11 @@ export type Summary = {
   mean: number
 }
 
+/** One style's two ops. */
+export type StyleResult = { hello: Summary; list: Summary }
+/** Per-style results keyed by style name. */
+export type StyleResults = Record<string, StyleResult>
+
 // With small n the tail percentiles collapse toward max — n below ~10 makes p90/p95 ≈ max —
 // so a meaningful tail needs the default sample count, not n=1.
 function percentile(sorted: readonly number[], p: number): number {
@@ -117,11 +122,30 @@ export async function measureStyle(
   probes: StyleProbes,
   call: (probe: Probe) => Promise<Response>,
   n: number,
-): Promise<{ hello: Summary; list: Summary }> {
+): Promise<StyleResult> {
   return {
     hello: await measure(() => call(probes.hello), n),
     list: await measure(() => call(probes.list), n),
   }
+}
+
+/**
+ * Probe the selected styles from a table, in the table's order, each via `call`. The one
+ * thing that varies per platform is `call` (in-process app.fetch vs an outbound fetch); the
+ * select-loop-collect around it is the same everywhere, so it lives here once.
+ */
+export async function measureStyles(
+  table: Record<string, StyleProbes>,
+  styles: readonly string[],
+  call: (probe: Probe) => Promise<Response>,
+  n: number,
+): Promise<StyleResults> {
+  const out: StyleResults = {}
+  for (const style of styles) {
+    const probes = table[style]
+    if (probes) out[style] = await measureStyle(probes, call, n)
+  }
+  return out
 }
 
 export function clampN(raw: string | undefined, max: number): number {

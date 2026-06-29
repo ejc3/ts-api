@@ -6,8 +6,7 @@ import {
   INPROC_STYLES,
   MAX_INPROC_N,
   MAX_NET_N,
-  measureStyle,
-  type Summary,
+  measureStyles,
   selectStyles,
 } from './bench-core.js'
 
@@ -30,8 +29,6 @@ import {
  * no-I/O op (hello) reads ~0 there and only list — which makes a D1 call — advances. The
  * response carries a caveat when it runs on a Worker.
  */
-
-type StyleResults = Record<string, { hello: Summary; list: Summary }>
 
 /** Best-effort serving location: Vercel region env, else the Cloudflare colo on the request. */
 function detectRegion(req: Request): string {
@@ -65,11 +62,12 @@ export function registerBench(app: Hono<{ Variables: Variables }>): void {
       }
       const n = clampN(c.req.query('n'), MAX_NET_N)
       const styles = selectStyles(c.req.query('styles'), Object.keys(ALL_STYLES))
-      const out: StyleResults = {}
-      for (const style of styles) {
-        const probes = ALL_STYLES[style as keyof typeof ALL_STYLES]
-        out[style] = await measureStyle(probes, (p) => fetch(`${origin}${p.path}`, p.init), n)
-      }
+      const out = await measureStyles(
+        ALL_STYLES,
+        styles,
+        (p) => fetch(`${origin}${p.path}`, p.init),
+        n,
+      )
       return c.json({
         mode,
         origin,
@@ -81,15 +79,12 @@ export function registerBench(app: Hono<{ Variables: Variables }>): void {
 
     const n = clampN(c.req.query('n'), MAX_INPROC_N)
     const styles = selectStyles(c.req.query('styles'), Object.keys(INPROC_STYLES))
-    const out: StyleResults = {}
-    for (const style of styles) {
-      const probes = INPROC_STYLES[style as keyof typeof INPROC_STYLES]
-      out[style] = await measureStyle(
-        probes,
-        async (p) => app.fetch(new Request(`http://bench.local${p.path}`, p.init), c.env),
-        n,
-      )
-    }
+    const out = await measureStyles(
+      INPROC_STYLES,
+      styles,
+      async (p) => app.fetch(new Request(`http://bench.local${p.path}`, p.init), c.env),
+      n,
+    )
     const region = detectRegion(c.req.raw)
     return c.json({
       mode,
