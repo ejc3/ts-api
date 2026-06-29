@@ -32,7 +32,12 @@ jobs:
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
     steps:
+      # Deploy the exact commit CI validated, not the moving tip of main — otherwise a
+      # newer, untested commit could ship on an older commit's green run. Falls back to
+      # the ref for a manual workflow_dispatch.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24

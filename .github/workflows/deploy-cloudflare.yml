@@ -24,7 +24,12 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
+      # Deploy the exact commit CI validated, not the moving tip of main — otherwise a
+      # newer, untested commit could ship on an older commit's green run. Falls back to
+      # the ref for a manual workflow_dispatch.
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: pnpm/action-setup@v4
         with:
           version: 10

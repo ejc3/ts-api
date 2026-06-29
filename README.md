@@ -52,7 +52,7 @@ red gate ships nothing.
   [`vercel.json`](./vercel.json)), so the gate is the only path to production. PR preview deploys
   still run.
 
-Gated this way, commit→ready is CI (~30 s) plus the platform's build/deploy — ~20 s for the
-Vercel build, ~25 s for `wrangler deploy` — so roughly ~50–55 s on each. Each deploy smokes its
-live URL inline, and a scheduled workflow ([`smoke.yml`](./.github/workflows/smoke.yml)) re-checks
-both production URLs daily.
+Gated this way, commit→ready is the CI run followed by the platform's build/deploy step (a ~20 s
+Vercel build or a ~25 s `wrangler deploy`). Each deploy job checks out the exact commit CI
+validated and smokes its live URL inline, and a scheduled workflow
+([`smoke.yml`](./.github/workflows/smoke.yml)) re-checks both production URLs daily.
