@@ -194,10 +194,13 @@ export default { fetch: app.fetch }
 ```
 
 ```ts
-// src/adapters/vercel.ts — same app; Connect/gRPC attaches here via its Node adapter
+// src/adapters/vercel.ts — the same app, exported as named HTTP methods (a default
+// export would be treated as a Node (req,res) handler and its Response ignored).
+// gRPC/Connect and Express have no Fetch adapter, so they deploy as their own Vercel
+// functions (api/grpc.ts, api/express.ts), not through this app.
 import { app } from '../app'
-export const GET = app.fetch
-export const POST = app.fetch
+const handler = (req: Request) => app.fetch(req)
+export { handler as GET, handler as POST, handler as PUT, handler as PATCH, handler as DELETE }
 ```
 
 ```toml
@@ -223,17 +226,19 @@ src/
   trpc/       @trpc/server router importing core
   grpc/       ConnectRPC service + generated protobuf, importing core
   express/    Express 5 app importing core (Node-only)
-  adapters/   vercel/ and cloudflare/ entry points only
+  adapters/   cloudflare.ts (Workers) + vercel.ts (Fetch app); vercel-grpc/-express/-bench-socket
+              are the Node-only Vercel functions
 ```
 
 - **Persistence** — handlers depend on a `DataStore` interface in `core`, backed by D1 on
-  Cloudflare and libSQL/Postgres on Vercel.
+  Cloudflare and Turso/libSQL on Vercel.
 - **Config & secrets** — a `Config` interface loaded per adapter: `process.env` on Vercel,
   `env` binding via `wrangler secret` on Cloudflare.
 - **Auth** — a stub `verifyBearer` check in `core` with the signature a real JWT verifier would
   have, ready to wire into any style behind one import (no style mounts it yet).
-- **Testing** — Vitest unit tests on schemas/resolvers/handlers; smoke tests run each Fetch
-  handler in-process and under `wrangler dev`. CI gate: lint + `tsc --noEmit` + `vitest run`.
+- **Testing** — Vitest unit + integration tests run each handler in-process. CI gate:
+  `biome ci` + `tsc --noEmit` + `vitest run` + `wrangler deploy --dry-run` (the edge-bundle
+  build smoke).
 - **Versions** — Node 24 LTS, TypeScript 6.x, Hono 4.x, `graphql-yoga` 5.x, Pothos 4.x,
   `@trpc/server` 11.x, `@connectrpc/connect` 2.x, Zod 4.x, pinned exactly and verified under
   `nodejs_compat`.

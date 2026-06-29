@@ -33,7 +33,8 @@ pnpm exec biome check .
 pnpm dev             # wrangler dev (Cloudflare)
 ```
 
-Each API style lands as its own reviewed PR; CI runs biome + tsc + vitest on every push.
+Each API style lands as its own reviewed PR; CI runs biome + tsc + vitest + a Cloudflare
+build smoke on every PR and every push to `main`.
 
 ## Deploy
 
