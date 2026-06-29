@@ -1,0 +1,11 @@
+# This project deploys to Vercel and Cloudflare, not Netlify. The Netlify GitHub
+# App is connected to the repo and fails on every push because there is no static
+# site to build. Cancel every Netlify build so it stops posting failed deploy
+# checks. (An ignore command that exits 0 tells Netlify to skip the build.)
+#
+# To remove Netlify entirely, do one of these in the dashboard — they can't be
+# done from CI:
+#   - Netlify: Site configuration -> Build & deploy -> Manage repository -> unlink
+#   - GitHub:  Settings -> Integrations -> Netlify -> revoke access to this repo
+[build]
+  ignore = "exit 0"
