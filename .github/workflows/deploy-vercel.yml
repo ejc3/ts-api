@@ -1,54 +1,77 @@
 name: Deploy (Vercel)
 
-# Deploy to Vercel production only after CI passes on main. Mirrors the Cloudflare
-# gate: workflow_run fires when the CI workflow completes; the job guard requires a
-# green conclusion, so a red gate never ships. Vercel's own git auto-deploy for main
-# is disabled (git.deploymentEnabled in vercel.json), so this workflow is the only
-# path to production. workflow_dispatch allows an on-demand deploy from the Actions tab.
+# Fast, gated production deploy. On every push to main we stage a PRODUCTION build on
+# Vercel's own infra without promoting it (--skip-domain), so it runs in parallel with
+# CI and does not go live. We then wait for CI to pass on this exact commit and promote
+# that build to production — a ~3 s alias flip. The build overlaps the CI wait instead
+# of stacking after it, and a red CI never promotes. A manual workflow_dispatch promotes
+# without waiting for CI (the on-demand escape hatch).
 on:
-  workflow_run:
-    workflows: [CI]
-    types: [completed]
+  push:
     branches: [main]
   workflow_dispatch:
 
 permissions:
   contents: read
+  actions: read # gh run list — read the CI run's conclusion for this commit
 
-# One deploy at a time; let an in-flight deploy finish rather than cancel it.
+# One deploy at a time; let an in-flight promote finish rather than cancel it.
 concurrency:
   group: deploy-vercel
   cancel-in-progress: false
 
 jobs:
   deploy:
-    # Skip when the triggering CI run failed; always allow a manual dispatch.
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    # The Vercel CLI reads these from the environment, so no secret is ever passed on
-    # argv. ORG/PROJECT id select the project in place of the gitignored .vercel/.
+    # The Vercel CLI and gh read these from the environment, so no secret is ever passed
+    # on argv. ORG/PROJECT id select the project in place of the gitignored .vercel/.
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      GH_TOKEN: ${{ github.token }}
     steps:
-      # Deploy the exact commit CI validated, not the moving tip of main — otherwise a
-      # newer, untested commit could ship on an older commit's green run. Falls back to
-      # the ref for a manual workflow_dispatch.
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Cache the Vercel CLI install
+        uses: actions/cache@v4
+        with:
+          path: ~/.npm
+          key: vercel-cli-${{ runner.os }}
       - name: Install Vercel CLI
         run: npm i -g vercel@latest
-      # Upload the checked-out source and let Vercel build it on its own infra (warm
-      # deps + build cache), then promote to production. No --prebuilt, so there is no
-      # in-runner build and no pnpm setup — Vercel installs deps during the remote build,
-      # the same fast path the git integration used, now gated behind CI.
-      - name: Deploy to production (built on Vercel)
-        run: vercel deploy --prod --yes
+      - name: Stage a production build (parallel with CI, not promoted)
+        id: stage
+        # --skip-domain builds a production deployment (production env) without moving the
+        # production alias, so it does not go live until the promote step below. Tag it
+        # with the commit so nothing else can be promoted by mistake.
+        run: |
+          url=$(vercel deploy --prod --skip-domain --yes -m gitsha="$GITHUB_SHA" 2>/dev/null \
+            | grep -oE 'https://[a-z0-9-]+\.vercel\.app' | tail -1)
+          if [ -z "$url" ]; then echo "no staged deployment url"; exit 1; fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "staged: $url"
+      - name: Wait for CI to pass on this commit (the gate)
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          for i in $(seq 1 60); do
+            # Pin this to the push-to-main CI run for this commit — never a pull_request
+            # run that might share the SHA/branch — so a PR's green run can't promote a
+            # main commit whose push CI is red.
+            verdict=$(gh run list --commit "$GITHUB_SHA" --workflow CI --branch main --event push \
+              --limit 1 --json status,conclusion --jq '.[0] | (.status + "/" + (.conclusion // "-"))' 2>/dev/null || echo "")
+            echo "CI: ${verdict:-<no run yet>}"
+            case "$verdict" in
+              completed/success) exit 0 ;;
+              completed/*) echo "CI did not pass — not promoting"; exit 1 ;;
+            esac
+            sleep 5
+          done
+          echo "timed out waiting for CI"; exit 1
+      - name: Promote the CI-validated build to production
+        run: vercel promote "${{ steps.stage.outputs.url }}" --yes
       - name: Smoke the live deployment
         # The Vercel deployment serves all five styles (gRPC and Express are Node-only
         # functions here); a non-2xx on any read fails the deploy.
