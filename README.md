@@ -44,26 +44,28 @@ red gate ships nothing.
 - **CI** ([`ci.yml`](./.github/workflows/ci.yml)) runs biome + tsc + vitest + a Cloudflare build
   smoke on every PR and every push to `main`.
 - **Cloudflare** deploys from [`deploy-cloudflare.yml`](./.github/workflows/deploy-cloudflare.yml)
-  (`wrangler deploy`) and **Vercel** from
-  [`deploy-vercel.yml`](./.github/workflows/deploy-vercel.yml) (`vercel deploy --prebuilt --prod`).
-  Both are `workflow_run` jobs guarded on `conclusion == 'success'`, so neither ships on a red
-  gate; a manual `workflow_dispatch` can still deploy on demand.
-- Vercel's git-integration auto-deploy for `main` is turned off (`git.deploymentEnabled` in
-  [`vercel.json`](./vercel.json)), so the gate is the only path to production. PR preview deploys
-  still run.
+  — a `workflow_run` job that runs `wrangler deploy` after CI succeeds.
+- **Vercel** deploys from [`deploy-vercel.yml`](./.github/workflows/deploy-vercel.yml), which
+  **stages the build in parallel with CI and promotes on green**: on push it runs `vercel deploy
+  --prod --skip-domain` (a production build on Vercel's infra that is *not* made live), waits for
+  the push-to-main CI run to pass, then `vercel promote`s that exact build — a ~3 s alias flip. So
+  the build overlaps the CI wait instead of stacking after it.
+- Both are fail-closed: a red CI never promotes/deploys; a manual `workflow_dispatch` deploys on
+  demand. Vercel's git-integration auto-deploy for `main` is off (`git.deploymentEnabled` in
+  [`vercel.json`](./vercel.json)), so these workflows are the only path to production; PR preview
+  deploys still run.
 
-Each deploy job checks out the exact commit CI validated and smokes its live URL inline; a
-scheduled workflow ([`smoke.yml`](./.github/workflows/smoke.yml)) re-checks both production URLs
-daily. Measured commit→ready on gated merges:
+Each deploy smokes its live URL inline; a scheduled workflow
+([`smoke.yml`](./.github/workflows/smoke.yml)) re-checks both production URLs daily. Measured
+commit→ready on gated merges:
 
 | Platform | commit → ready | breakdown |
 | --- | --- | --- |
-| Cloudflare | ~57 s | ~30 s CI gate + ~26 s `wrangler deploy` |
-| Vercel | ~89 s | ~31 s CI gate + a ~58 s deploy (`npm i -g vercel` ~11 s, then `vercel deploy --prod` uploads the source and builds on Vercel's infra ~40 s) |
+| Cloudflare | ~57 s | ~30 s CI gate (serial) + ~26 s `wrangler deploy` |
+| Vercel | ~60 s | gate overlapped — the ~29 s build runs parallel with CI (the CI-wait was ~2 s); the rest is runner setup, a ~12 s CLI install, and a ~3 s promote |
 
-`vercel deploy` (no `--prebuilt`) builds on Vercel's own infra — warm deps and build cache, the
-same fast path the git integration used — so there is no in-runner build. The gate adds the ~30 s
-CI wait the old git auto-deploy skipped (that auto-deploy was ~25 s but shipped regardless of CI).
-What keeps Vercel slower than Cloudflare here is the one-time CLI install and the source upload; a
-Vercel Deploy Hook would shave those (~55 s) but would rebuild main's tip instead of the exact
-CI-validated commit.
+Vercel's build now overlaps the CI wait, so the gate adds almost nothing to its total (the deploy
+job waited ~2 s for CI); the ~60 s is the deploy job's own setup + CLI install + Vercel build. The
+floor is the ~29 s Vercel build. A Vercel Deploy Hook would drop the CLI install (~50 s) but would
+rebuild main's tip instead of the exact CI-validated commit. The old git auto-deploy was ~25 s but
+shipped regardless of CI.
