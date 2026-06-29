@@ -1,0 +1,9 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "rewrites": [
+    { "source": "/user.v1.UserService/(.*)", "destination": "/api/grpc" },
+    { "source": "/express/(.*)", "destination": "/api/express" },
+    { "source": "/(.*)", "destination": "/api" }
+  ]
+}
