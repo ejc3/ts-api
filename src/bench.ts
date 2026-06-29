@@ -23,7 +23,12 @@ import {
  * Both modes are read-only and the sample count is bounded.
  *
  *   GET /bench                    in-process app.fetch, no network (REST/tRPC/GraphQL)
- *   GET /bench?mode=loopback      same-origin in-region HTTP, all five styles (Vercel only)
+ *   GET /bench?mode=loopback      server-side HTTPS round-trip to the project, all five (Vercel only)
+ *
+ * Note on platforms: in-process timings are CPU-resolved only on the Node (Vercel) runtime.
+ * Cloudflare Workers coarsen performance.now() between I/O as a side-channel mitigation, so a
+ * no-I/O op (hello) reads ~0 there and only list — which makes a D1 call — advances. The
+ * response carries a caveat when it runs on a Worker.
  */
 
 type StyleResults = Record<string, { hello: Summary; list: Summary }>
@@ -69,7 +74,7 @@ export function registerBench(app: Hono<{ Variables: Variables }>): void {
         mode,
         origin,
         region: detectRegion(c.req.raw),
-        note: 'same-origin in-region loopback; uniform per-style network, client distance removed',
+        note: 'server-side HTTPS round-trip to the same project (edge routing + TLS included); removes client distance, in-region only on production',
         styles: out,
       })
     }
@@ -85,10 +90,19 @@ export function registerBench(app: Hono<{ Variables: Variables }>): void {
         n,
       )
     }
+    const region = detectRegion(c.req.raw)
     return c.json({
       mode,
-      region: detectRegion(c.req.raw),
+      region,
       note: 'in-process app.fetch; no client↔server network, server→DataStore latency included',
+      // Workers coarsen performance.now() between I/O, so a no-I/O op (hello) reads ~0 there;
+      // CPU-bound dispatch timings are only resolvable on the Node (Vercel) runtime.
+      ...(region.startsWith('cloudflare')
+        ? {
+            caveat:
+              'Workers coarsen performance.now() between I/O; hello reads ~0 here — read dispatch timings from Vercel.',
+          }
+        : {}),
       styles: out,
     })
   })

@@ -43,6 +43,13 @@ describe('/bench (in-process)', () => {
     expect(Object.keys(body.styles)).toEqual(['rest'])
   })
 
+  it('dedupes repeated styles so they cannot multiply the work', async () => {
+    const res = await buildApp().request('/bench?n=1&styles=rest,rest,rest,trpc,rest')
+    const body = (await res.json()) as BenchBody
+    // Each style runs once, in the fixed allowlist order — not once per duplicate.
+    expect(Object.keys(body.styles)).toEqual(['rest', 'trpc'])
+  })
+
   it('rejects loopback mode off Vercel (no trusted origin to call)', async () => {
     const res = await buildApp().request('/bench?mode=loopback&n=1')
     expect(res.status).toBe(400)

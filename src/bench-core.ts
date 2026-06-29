@@ -4,9 +4,13 @@
  * bench (src/node-bench.ts) so both measure the exact same ops. No Node-only imports, so it
  * is safe in the Workers bundle.
  *
- * Each style is probed with two ops: `hello` (no DataStore access) and `list` (the SQL-backed
- * read), so the SQL cost separates from framework dispatch. Targets are this app's own fixed
- * paths — there is no caller-supplied URL, so nothing built on these can be aimed elsewhere.
+ * Each style is probed with two ops: `hello` (no DataStore access) and `list` (the
+ * store-backed read). The within-style `list − hello` delta isolates the DataStore read cost
+ * from framework dispatch. `hello` is each style's minimal end-to-end op in its own idiom
+ * (GraphQL and gRPC still parse and validate the request), so only that per-style delta is
+ * directly comparable across styles — not the raw `hello` numbers. Targets are this app's own
+ * fixed paths — there is no caller-supplied URL, so nothing built on these can be aimed
+ * elsewhere.
  */
 
 export type Probe = { readonly path: string; readonly init?: RequestInit }
@@ -63,6 +67,8 @@ export type Summary = {
   mean: number
 }
 
+// With small n the tail percentiles collapse toward max — n below ~10 makes p90/p95 ≈ max —
+// so a meaningful tail needs the default sample count, not n=1.
 function percentile(sorted: readonly number[], p: number): number {
   if (sorted.length === 0) return Number.NaN
   const idx = Math.min(sorted.length - 1, Math.ceil((p / 100) * sorted.length) - 1)
@@ -85,14 +91,22 @@ export function summarize(samples: number[]): Summary {
   }
 }
 
-/** Time `n` calls of `call`, after a few warmups, draining each body to time the whole response. */
+/**
+ * Time `n` calls of `call`, after a few warmups, draining each body to time the whole
+ * response. A non-2xx response throws rather than being recorded, so a broken probe (wrong
+ * path, dispatcher miss) surfaces loudly instead of reporting fast error timings.
+ */
 export async function measure(call: () => Promise<Response>, n: number): Promise<Summary> {
-  for (let i = 0; i < WARMUP; i++) await (await call()).text()
+  const once = async () => {
+    const res = await call()
+    await res.text()
+    if (!res.ok) throw new Error(`bench probe got HTTP ${res.status}`)
+  }
+  for (let i = 0; i < WARMUP; i++) await once()
   const samples: number[] = []
   for (let i = 0; i < n; i++) {
     const t0 = performance.now()
-    const res = await call()
-    await res.text()
+    await once()
     samples.push(performance.now() - t0)
   }
   return summarize(samples)
@@ -117,10 +131,10 @@ export function clampN(raw: string | undefined, max: number): number {
 }
 
 export function selectStyles(raw: string | undefined, allowed: readonly string[]): string[] {
-  const set = new Set(allowed)
   if (raw === undefined) return [...allowed]
-  return raw
-    .split(',')
-    .map((s) => s.trim())
-    .filter((s) => set.has(s))
+  const requested = new Set(raw.split(',').map((s) => s.trim()))
+  // Intersect with the fixed allowlist in allowlist order. This dedupes and bounds the
+  // result to the allowlist size, so a repeated `styles=rest,rest,...` can't multiply the
+  // probe count past the `n` clamp.
+  return allowed.filter((s) => requested.has(s))
 }

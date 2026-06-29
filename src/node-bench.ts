@@ -84,8 +84,8 @@ export async function benchOverSocket(
   const n = clampN(query.n, MAX_NET_N)
   const styles = selectStyles(query.styles, Object.keys(ALL_STYLES))
   const server = buildUnifiedServer(store)
-  const base = await listen(server)
   try {
+    const base = await listen(server)
     const out: Record<string, { hello: Summary; list: Summary }> = {}
     for (const style of styles) {
       const probes = ALL_STYLES[style as keyof typeof ALL_STYLES]
@@ -93,6 +93,7 @@ export async function benchOverSocket(
     }
     return { mode: 'socket', transport: 'node:http over 127.0.0.1', n, styles: out }
   } finally {
-    await close(server)
+    // Close only if the bind succeeded; closing a never-listening server throws.
+    if (server.listening) await close(server)
   }
 }
