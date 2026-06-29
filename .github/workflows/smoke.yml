@@ -1,9 +1,9 @@
 name: Smoke (production)
 
 # Read-only liveness check of both production deployments. Runs on demand and on a
-# daily schedule; it never writes, so it leaves no rows behind. The Cloudflare deploy
-# also smokes the Worker inline (deploy-cloudflare.yml); this covers Vercel, whose
-# deploy is driven by the git integration, and re-checks both on a schedule.
+# daily schedule; it never writes, so it leaves no rows behind. Both deploy workflows
+# already smoke their live URL inline after deploying (deploy-cloudflare.yml,
+# deploy-vercel.yml); this scheduled run re-checks both daily.
 on:
   workflow_dispatch:
   schedule:
