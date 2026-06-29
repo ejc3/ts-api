@@ -26,10 +26,10 @@ Populating them is the work; the credential traps below are why.
 
 Turso issues two unrelated token types that authenticate to two different hosts:
 
-| Token | Authenticates to | Used for | Minted by |
-| --- | --- | --- | --- |
-| **Platform API token** | `api.turso.tech` | Managing the account: create/destroy databases, manage groups, mint connection tokens | `turso auth token` / dashboard |
-| **Connection token** | `libsql://<db>-<org>.turso.io` | Connecting a client to a database to read/write rows | `turso db tokens create <db>` (one db) or `turso group tokens create <group>` (a group) |
+| Token | Authenticates to | Env var | Used for | Minted by |
+| --- | --- | --- | --- | --- |
+| **Platform API token** | `api.turso.tech` | `TURSO_API_TOKEN` | Managing the account: create/destroy databases, manage groups, mint connection tokens | `turso auth api-tokens mint <name>` / dashboard |
+| **Connection token** | `libsql://<db>-<org>.turso.io` | `TURSO_AUTH_TOKEN` | Connecting a client to a database to read/write rows | `turso db tokens create <db>` (one db) or `turso group tokens create <group>` (a group) |
 
 The connection token is the `TURSO_AUTH_TOKEN` value (a per-group token is
 `TURSO_GROUP_AUTH_TOKEN`); both pair with `TURSO_DATABASE_URL`. `TURSO_ORG` and

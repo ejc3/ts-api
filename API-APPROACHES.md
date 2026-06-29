@@ -9,15 +9,15 @@ the same surface on a different framework.
 
 ## TL;DR — the demos
 
-| Style | Stack |
-| --- | --- |
-| **REST** | **Hono** + `@hono/zod-openapi` |
-| **GraphQL** | **GraphQL Yoga** + **Pothos** code-first schema |
-| **tRPC** | `@trpc/server` fetch adapter |
-| **gRPC** | **ConnectRPC** (`@connectrpc/connect`), protobuf services via Connect's Node adapter |
-| **Express** | **Express 5** on Node's `http` server — the REST surface, Vercel-only |
-| **Validation / types** | **Zod** via Standard Schema, swappable for Valibot/ArkType |
-| **Portability** | Web-standard `Request`/`Response`; one core, per-platform entry adapter |
+| Style | Stack | Runs on |
+| --- | --- | --- |
+| **REST** | **Hono** + `@hono/zod-openapi` | Vercel + Cloudflare |
+| **GraphQL** | **GraphQL Yoga** + **Pothos** code-first schema | Vercel + Cloudflare |
+| **tRPC** | `@trpc/server` fetch adapter | Vercel + Cloudflare |
+| **gRPC** | **ConnectRPC** (`@connectrpc/connect`), protobuf via Connect's Node adapter | Vercel only |
+| **Express** | **Express 5** on Node's `http` server — the REST surface | Vercel only |
+| **Validation / types** | **Zod**, behind Standard Schema (the interface Valibot/ArkType also implement) | — |
+| **Portability** | Web-standard `Request`/`Response`; one core, per-platform entry adapter | — |
 
 ## Landscape snapshot (mid-2026)
 

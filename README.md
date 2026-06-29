@@ -46,14 +46,16 @@ Merging to `main` ships both deployments — there is no manual deploy step.
   that runs after the CI workflow passes on `main`, so an automatic deploy never ships on a red
   gate (a manual `workflow_dispatch` can still deploy on demand).
 
-Measured commit→ready on one merge (`09d773a`):
+Measured commit→ready on one merge (`09d773a`, n=1):
 
-| Platform | commit → ready | what's in it |
-| --- | --- | --- |
-| Vercel | ~29 s | ~5 s webhook + ~24 s build |
-| Cloudflare | ~57 s | ~31 s until CI is green + ~25 s `wrangler deploy` |
+| Platform | build/deploy work | CI-gate wait | commit → ready |
+| --- | --- | --- | --- |
+| Vercel | ~24 s build (+ ~5 s webhook) | none — builds in parallel with CI | ~29 s |
+| Cloudflare | ~25 s `wrangler deploy` | ~31 s — waits for CI green | ~57 s |
 
-Cloudflare is longer because its deploy waits for CI to go green first; Vercel builds in
-parallel with CI. The Cloudflare deploy smokes the live Worker inline, and a scheduled
-workflow ([`.github/workflows/smoke.yml`](./.github/workflows/smoke.yml)) re-checks both
-production URLs daily.
+The build/deploy work itself is essentially equal (~24 s vs ~25 s). The gap in commit→ready is
+the CI gate: Cloudflare deploys only after CI passes, while Vercel builds in parallel and can
+promote before CI finishes — faster, but it will ship even if the gate later goes red. The
+Cloudflare deploy smokes the live Worker inline, and a scheduled workflow
+([`.github/workflows/smoke.yml`](./.github/workflows/smoke.yml)) re-checks both production URLs
+daily.

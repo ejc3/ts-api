@@ -17,6 +17,15 @@ run, `n=50` per in-process run:
 | in-process `list` (+ Turso read) | 3.29 | 3.58 | 3.76 | — | — |
 | socket `list` (+ socket + Turso) | 3.80 | 3.87 | 5.53 | 4.13 | 3.76 |
 
+`—` marks the in-process path gRPC and Express don't have — both bind `node:http`, so they are
+measured only over the socket. Read **down** a column, not across: each style's `hello` is a
+different op (a GraphQL `hello` is a POST query; REST/tRPC/Express `hello` is a trivial GET), so
+the absolute `hello` values are not comparable across styles. The one cross-style-comparable
+number is the within-style `list − hello` delta, and on it the five tie: the socket delta is
+**≈3.2 ms for every style** (3.15–3.34 ms — REST 3.23, tRPC 3.15, GraphQL 3.34, gRPC 3.26,
+Express 3.22) — the SQL read costs the same regardless of framework; only the protocol envelope
+differs.
+
 Each layer adds to the one above it:
 
 - **Framework dispatch** (`hello`, no DataStore access): **0.12–0.29 ms**, REST < tRPC < GraphQL.
@@ -29,9 +38,10 @@ Each layer adds to the one above it:
   **~89 ms** for every style — the ~85 ms cross-country round-trip dwarfs everything above.
 
 The medians are stable: per-run p50 moved little across the 60 runs (REST `hello`
-`[0.53, 0.97]`, GraphQL `hello` `[2.10, 2.76]`). The large numbers are rare tail spikes —
-isolated runs hit p95 of 17–58 ms while the median p95 stayed 0.6–8 ms. The benchmark does not
-isolate their cause; they leave the median unmoved.
+`[0.53, 0.97]`, GraphQL `hello` `[2.10, 2.76]`). The high p95 numbers are rare tail spikes —
+isolated runs reached the tens of milliseconds, up to ~69 ms (one in-process tRPC `list` run),
+while the median p95 stayed under ~9 ms. The benchmark does not isolate their cause; they leave
+the median unmoved.
 
 ## How it works
 
@@ -74,6 +84,5 @@ only and is always torn down.
   I/O as a side-channel mitigation, so a no-I/O op (`hello`) reads ~0 on a Worker and only `list`
   — which makes a D1 call — advances the clock. The in-process response carries a caveat there;
   read dispatch timings from the Node (Vercel) runtime.
-- The `hello` numbers are each style's minimal op in its own idiom, so only the within-style
-  `list − hello` delta is directly comparable across styles. Tail percentiles need the default
-  sample count to be meaningful; `n` below ~10 makes p90/p95 collapse toward the max.
+- Tail percentiles need the default sample count to be meaningful; `n` below ~10 makes p90/p95
+  collapse toward the max.
