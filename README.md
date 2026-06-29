@@ -4,6 +4,10 @@ Four TypeScript API styles — REST, GraphQL, tRPC, gRPC — composed onto one W
 handler over a shared core, deployable to **Vercel or Cloudflare**. The stack rationale and
 per-style code are in [`API-APPROACHES.md`](./API-APPROACHES.md).
 
+Persistence is a shared `DataStore` over SQLite — Turso/libSQL on Node/Vercel, D1 on
+Cloudflare. Provisioning Turso has a few credential traps; they're written up in
+[`docs/turso.md`](./docs/turso.md).
+
 ## Layout
 
 ```
