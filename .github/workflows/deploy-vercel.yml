@@ -1,0 +1,50 @@
+name: Deploy (Vercel)
+
+# Deploy to Vercel production only after CI passes on main. Mirrors the Cloudflare
+# gate: workflow_run fires when the CI workflow completes; the job guard requires a
+# green conclusion, so a red gate never ships. Vercel's own git auto-deploy for main
+# is disabled (git.deploymentEnabled in vercel.json), so this workflow is the only
+# path to production. workflow_dispatch allows an on-demand deploy from the Actions tab.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; let an in-flight deploy finish rather than cancel it.
+concurrency:
+  group: deploy-vercel
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Skip when the triggering CI run failed; always allow a manual dispatch.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    # The Vercel CLI reads these from the environment, so no secret is ever passed on
+    # argv. ORG/PROJECT id select the project in place of the gitignored .vercel/.
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Install Vercel CLI
+        run: npm i -g vercel@latest
+      - name: Pull production project settings + env
+        run: vercel pull --yes --environment=production
+      - name: Build
+        run: vercel build --prod
+      - name: Deploy prebuilt output to production
+        run: vercel deploy --prebuilt --prod
+      - name: Smoke the live deployment
+        # The Vercel deployment serves all five styles (gRPC and Express are Node-only
+        # functions here); a non-2xx on any read fails the deploy.
+        run: node scripts/smoke.mjs --url https://ts-api.vercel.app
