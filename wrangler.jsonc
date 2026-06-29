@@ -5,5 +5,16 @@
   "compatibility_date": "2026-03-17",
   "compatibility_flags": ["nodejs_compat"],
   "account_id": "3d993cbea58e237ee54616991fe5a622",
+  // Serve on the stable workers.dev route; declared so the deploy doesn't rely on
+  // Wrangler's implicit defaults. Per-version preview URLs are off.
+  "workers_dev": true,
+  "preview_urls": false,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "ts-api",
+      "database_id": "6be55517-ff59-49fb-bb56-3c5005943fbe"
+    }
+  ],
   "observability": { "enabled": true }
 }
