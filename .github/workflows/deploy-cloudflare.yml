@@ -1,0 +1,41 @@
+name: Deploy (Cloudflare)
+
+# Deploy the Worker only after CI passes on main. workflow_run fires when the CI
+# workflow completes; the job guard requires a green conclusion, so a red gate
+# never ships. workflow_dispatch allows an on-demand deploy from the Actions tab.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; let an in-flight deploy finish rather than cancel it.
+concurrency:
+  group: deploy-cloudflare
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    # Skip when the triggering CI run failed; always allow a manual dispatch.
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Deploy Worker
+        # account_id and the D1 binding come from wrangler.jsonc; only the API
+        # token is a secret. JWT_SECRET is a Worker secret set out of band.
+        run: pnpm exec wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
