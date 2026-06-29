@@ -1,7 +1,7 @@
 import { createClient } from '@libsql/client'
 import { describe, expect, it } from 'vitest'
-import cloudflare from '../src/adapters/cloudflare'
-import { fakeD1 } from './fake-d1'
+import cloudflare from '../src/adapters/cloudflare.js'
+import { fakeD1 } from './fake-d1.js'
 
 const ctx = {
   waitUntil: () => {},

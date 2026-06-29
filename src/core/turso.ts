@@ -1,8 +1,8 @@
 import { type Client, createClient } from '@libsql/client'
-import { DEMO_USERS } from './seed'
-import { type SqlDriver, SqliteStore } from './sqlite'
-import { InMemoryStore } from './store'
-import type { DataStore } from './types'
+import { DEMO_USERS } from './seed.js'
+import { type SqlDriver, SqliteStore } from './sqlite.js'
+import { InMemoryStore } from './store.js'
+import type { DataStore } from './types.js'
 
 /** SqlDriver backed by a libSQL/Turso client. */
 export function tursoDriver(client: Client): SqlDriver {

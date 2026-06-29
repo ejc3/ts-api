@@ -1,5 +1,5 @@
-import { buildApp } from '../app'
-import { type DataStore, DEMO_USERS, d1Driver, InMemoryStore, SqliteStore } from '../core/index'
+import { buildApp } from '../app.js'
+import { type DataStore, DEMO_USERS, d1Driver, InMemoryStore, SqliteStore } from '../core/index.js'
 
 /** Worker env: secrets arrive as strings, the optional D1 binding as an object. */
 interface Env {

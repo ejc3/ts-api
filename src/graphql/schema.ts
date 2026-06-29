@@ -1,6 +1,6 @@
 import SchemaBuilder from '@pothos/core'
 import { GraphQLError } from 'graphql'
-import { type DataStore, normalizeUserName, type User } from '../core/index'
+import { type DataStore, normalizeUserName, type User } from '../core/index.js'
 
 export interface GraphQLContext {
   store: DataStore

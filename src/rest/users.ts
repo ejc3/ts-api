@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from '@hono/zod-openapi'
-import type { DataStore } from '../core/index'
+import type { DataStore } from '../core/index.js'
 
 const UserSchema = z.object({ id: z.string(), name: z.string() }).openapi('User')
 const ErrorSchema = z.object({ error: z.string() }).openapi('Error')

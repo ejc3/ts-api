@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { buildApp, STYLES } from '../src/app'
+import { buildApp, STYLES } from '../src/app.js'
 
 describe('REST (integration)', () => {
   it('lists seeded users', async () => {

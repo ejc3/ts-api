@@ -1,8 +1,14 @@
 import { Hono } from 'hono'
-import { type Config, configFromEnv, type DataStore, DEMO_USERS, InMemoryStore } from './core/index'
-import { createYogaHandler } from './graphql/index'
-import { createRest } from './rest/users'
-import { createTrpcHandler } from './trpc/index'
+import {
+  type Config,
+  configFromEnv,
+  type DataStore,
+  DEMO_USERS,
+  InMemoryStore,
+} from './core/index.js'
+import { createYogaHandler } from './graphql/index.js'
+import { createRest } from './rest/users.js'
+import { createTrpcHandler } from './trpc/index.js'
 
 const API_BASE = '/api'
 const TRPC_BASE = '/trpc'

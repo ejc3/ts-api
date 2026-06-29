@@ -1,4 +1,4 @@
-import type { DataStore, User } from './types'
+import type { DataStore, User } from './types.js'
 
 /** A query result row, columns keyed by name. */
 export type SqlRow = Record<string, unknown>

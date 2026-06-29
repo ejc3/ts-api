@@ -1,4 +1,4 @@
-import type { DataStore, User } from './types'
+import type { DataStore, User } from './types.js'
 
 /**
  * In-memory DataStore for demos and tests; writes are not durable. Real backings

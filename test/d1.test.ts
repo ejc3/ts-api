@@ -1,7 +1,7 @@
 import { createClient } from '@libsql/client'
 import { describe, expect, it } from 'vitest'
-import { DEMO_USERS, d1Driver, SqliteStore } from '../src/core/index'
-import { fakeD1 } from './fake-d1'
+import { DEMO_USERS, d1Driver, SqliteStore } from '../src/core/index.js'
+import { fakeD1 } from './fake-d1.js'
 
 const d1Store = (seed = DEMO_USERS) =>
   new SqliteStore(d1Driver(fakeD1(createClient({ url: ':memory:' }))), seed)

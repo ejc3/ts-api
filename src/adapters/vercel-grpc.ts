@@ -1,5 +1,5 @@
-import { resolveNodeStore } from '../core/turso'
-import { createGrpcNodeHandler } from '../grpc/node'
+import { resolveNodeStore } from '../core/turso.js'
+import { createGrpcNodeHandler } from '../grpc/node.js'
 
 // ConnectRPC has no edge Fetch adapter, so gRPC deploys as a Vercel Node function — its
 // own function, with the same Node store resolution as the Hono app (Turso when

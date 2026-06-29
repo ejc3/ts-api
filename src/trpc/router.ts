@@ -1,6 +1,6 @@
 import { initTRPC, TRPCError } from '@trpc/server'
 import { z } from 'zod'
-import type { DataStore } from '../core/index'
+import type { DataStore } from '../core/index.js'
 
 export interface TrpcContext {
   store: DataStore

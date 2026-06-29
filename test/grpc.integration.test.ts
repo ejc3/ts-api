@@ -3,9 +3,9 @@ import type { AddressInfo } from 'node:net'
 import { type Client, Code, ConnectError, createClient, type Transport } from '@connectrpc/connect'
 import { createConnectTransport, createGrpcWebTransport } from '@connectrpc/connect-node'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { DEMO_USERS, InMemoryStore } from '../src/core/index'
-import { UserService } from '../src/grpc/gen/user_pb'
-import { createGrpcNodeHandler } from '../src/grpc/node'
+import { DEMO_USERS, InMemoryStore } from '../src/core/index.js'
+import { UserService } from '../src/grpc/gen/user_pb.js'
+import { createGrpcNodeHandler } from '../src/grpc/node.js'
 
 // connectNodeAdapter serves Connect, gRPC, and gRPC-Web from one handler, picking the
 // protocol off each request. Cover the two that run over HTTP/1.1 — the wire Vercel's
