@@ -52,7 +52,15 @@ red gate ships nothing.
   [`vercel.json`](./vercel.json)), so the gate is the only path to production. PR preview deploys
   still run.
 
-Gated this way, commit→ready is the CI run followed by the platform's build/deploy step (a ~20 s
-Vercel build or a ~25 s `wrangler deploy`). Each deploy job checks out the exact commit CI
-validated and smokes its live URL inline, and a scheduled workflow
-([`smoke.yml`](./.github/workflows/smoke.yml)) re-checks both production URLs daily.
+Each deploy job checks out the exact commit CI validated and smokes its live URL inline; a
+scheduled workflow ([`smoke.yml`](./.github/workflows/smoke.yml)) re-checks both production URLs
+daily. Measured commit→ready on one gated merge (`f4c4257`):
+
+| Platform | commit → ready | breakdown |
+| --- | --- | --- |
+| Cloudflare | ~57 s | ~30 s CI gate + ~26 s `wrangler deploy` |
+| Vercel | ~97 s | ~27 s CI gate + a ~68 s deploy job (`npm i -g vercel` ~11 s, `vercel build` ~12 s, `vercel deploy` upload ~26 s, runner setup + smoke ~19 s) |
+
+Gating adds the CI wait (~30 s) that the old Vercel git auto-deploy skipped — that auto-deploy was
+~25 s but shipped regardless of CI. Vercel's gated job is heavier than Cloudflare's because it runs
+a from-scratch CLI build and upload in the runner rather than the platform's own build infra.
