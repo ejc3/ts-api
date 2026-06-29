@@ -20,6 +20,8 @@ builder.objectType('User', {
 
 builder.queryType({
   fields: (t) => ({
+    // No store access — a benchmark baseline for framework dispatch alone.
+    hello: t.string({ resolve: () => 'hello world' }),
     users: t.field({
       type: ['User'],
       resolve: (_root, _args, ctx) => ctx.store.listUsers(),

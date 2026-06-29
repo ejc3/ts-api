@@ -10,6 +10,11 @@ export function createExpressApp(store: DataStore): Express {
   const app = express()
   app.use(express.json())
 
+  // No store access — a benchmark baseline for framework dispatch alone.
+  app.get('/hello', (_req, res) => {
+    res.type('text/plain').send('hello world')
+  })
+
   app.get('/users', async (_req, res) => {
     res.json(await store.listUsers())
   })

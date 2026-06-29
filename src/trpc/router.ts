@@ -10,6 +10,9 @@ const t = initTRPC.context<TrpcContext>().create()
 
 /** tRPC surface over the shared DataStore — the router type is the client contract. */
 export const appRouter = t.router({
+  // No store access — a benchmark baseline for framework dispatch alone.
+  hello: t.procedure.query(() => 'hello world'),
+
   users: t.router({
     list: t.procedure.query(({ ctx }) => ctx.store.listUsers()),
 

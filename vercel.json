@@ -2,6 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
   "rewrites": [
+    { "source": "/bench-socket", "destination": "/api/bench-socket" },
     { "source": "/user.v1.UserService/(.*)", "destination": "/api/grpc" },
     { "source": "/express/(.*)", "destination": "/api/express" },
     { "source": "/(.*)", "destination": "/api" }

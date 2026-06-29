@@ -57,6 +57,10 @@ describe.each(TRANSPORTS)('gRPC / Connect over %s (integration)', (_name, makeTr
     expect(await client.createUser({ name: '  Grace  ' })).toMatchObject({ name: 'Grace' })
   })
 
+  it('says hello without touching the store', async () => {
+    expect((await client.hello({})).message).toBe('hello world')
+  })
+
   it('rejects an empty or whitespace-only name with INVALID_ARGUMENT', async () => {
     for (const name of ['', '   ']) {
       try {

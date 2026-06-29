@@ -23,6 +23,12 @@ describe('REST (integration)', () => {
     expect(await res.json()).toEqual({ error: 'not found' })
   })
 
+  it('says hello without touching the store', async () => {
+    const res = await buildApp().request('/api/hello')
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('hello world')
+  })
+
   it('creates a user', async () => {
     const res = await buildApp().request('/api/users', {
       method: 'POST',

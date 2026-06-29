@@ -34,6 +34,12 @@ describe('GraphQL (integration)', () => {
     expect(body.data?.user).toEqual({ name: 'Ada' })
   })
 
+  it('says hello without touching the store', async () => {
+    const { status, body } = await gql(buildApp(), '{ hello }')
+    expect(status).toBe(200)
+    expect(body.data?.hello).toBe('hello world')
+  })
+
   it('returns null for a missing user', async () => {
     const { body } = await gql(buildApp(), 'query($id: ID!){ user(id: $id){ name } }', {
       id: '999',

@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import { registerBench } from './bench.js'
 import {
   type Config,
   configFromEnv,
@@ -50,5 +51,8 @@ export function buildApp(
 
   const yoga = createYogaHandler(store, GRAPHQL_BASE)
   app.all(GRAPHQL_BASE, (c) => yoga(c.req.raw))
+
+  // In-server latency probe over the styles mounted above (closed; see bench.ts).
+  registerBench(app)
   return app
 }

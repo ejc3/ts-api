@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file user.proto.
  */
 export const file_user: GenFile = /*@__PURE__*/
-  fileDesc("Cgp1c2VyLnByb3RvEgd1c2VyLnYxIiAKBFVzZXISCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCSIcCg5HZXRVc2VyUmVxdWVzdBIKCgJpZBgBIAEoCSISChBMaXN0VXNlcnNSZXF1ZXN0IjEKEUxpc3RVc2Vyc1Jlc3BvbnNlEhwKBXVzZXJzGAEgAygLMg0udXNlci52MS5Vc2VyIiEKEUNyZWF0ZVVzZXJSZXF1ZXN0EgwKBG5hbWUYASABKAkyvQEKC1VzZXJTZXJ2aWNlEjEKB0dldFVzZXISFy51c2VyLnYxLkdldFVzZXJSZXF1ZXN0Gg0udXNlci52MS5Vc2VyEkIKCUxpc3RVc2VycxIZLnVzZXIudjEuTGlzdFVzZXJzUmVxdWVzdBoaLnVzZXIudjEuTGlzdFVzZXJzUmVzcG9uc2USNwoKQ3JlYXRlVXNlchIaLnVzZXIudjEuQ3JlYXRlVXNlclJlcXVlc3QaDS51c2VyLnYxLlVzZXJiBnByb3RvMw");
+  fileDesc("Cgp1c2VyLnByb3RvEgd1c2VyLnYxIiAKBFVzZXISCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCSIcCg5HZXRVc2VyUmVxdWVzdBIKCgJpZBgBIAEoCSISChBMaXN0VXNlcnNSZXF1ZXN0IjEKEUxpc3RVc2Vyc1Jlc3BvbnNlEhwKBXVzZXJzGAEgAygLMg0udXNlci52MS5Vc2VyIiEKEUNyZWF0ZVVzZXJSZXF1ZXN0EgwKBG5hbWUYASABKAkiDgoMSGVsbG9SZXF1ZXN0IiAKDUhlbGxvUmVzcG9uc2USDwoHbWVzc2FnZRgBIAEoCTL1AQoLVXNlclNlcnZpY2USMQoHR2V0VXNlchIXLnVzZXIudjEuR2V0VXNlclJlcXVlc3QaDS51c2VyLnYxLlVzZXISQgoJTGlzdFVzZXJzEhkudXNlci52MS5MaXN0VXNlcnNSZXF1ZXN0GhoudXNlci52MS5MaXN0VXNlcnNSZXNwb25zZRI3CgpDcmVhdGVVc2VyEhoudXNlci52MS5DcmVhdGVVc2VyUmVxdWVzdBoNLnVzZXIudjEuVXNlchI2CgVIZWxsbxIVLnVzZXIudjEuSGVsbG9SZXF1ZXN0GhYudXNlci52MS5IZWxsb1Jlc3BvbnNlYgZwcm90bzM");
 
 /**
  * @generated from message user.v1.User
@@ -99,6 +99,36 @@ export const CreateUserRequestSchema: GenMessage<CreateUserRequest> = /*@__PURE_
   messageDesc(file_user, 4);
 
 /**
+ * @generated from message user.v1.HelloRequest
+ */
+export type HelloRequest = Message<"user.v1.HelloRequest"> & {
+};
+
+/**
+ * Describes the message user.v1.HelloRequest.
+ * Use `create(HelloRequestSchema)` to create a new message.
+ */
+export const HelloRequestSchema: GenMessage<HelloRequest> = /*@__PURE__*/
+  messageDesc(file_user, 5);
+
+/**
+ * @generated from message user.v1.HelloResponse
+ */
+export type HelloResponse = Message<"user.v1.HelloResponse"> & {
+  /**
+   * @generated from field: string message = 1;
+   */
+  message: string;
+};
+
+/**
+ * Describes the message user.v1.HelloResponse.
+ * Use `create(HelloResponseSchema)` to create a new message.
+ */
+export const HelloResponseSchema: GenMessage<HelloResponse> = /*@__PURE__*/
+  messageDesc(file_user, 6);
+
+/**
  * @generated from service user.v1.UserService
  */
 export const UserService: GenService<{
@@ -125,6 +155,17 @@ export const UserService: GenService<{
     methodKind: "unary";
     input: typeof CreateUserRequestSchema;
     output: typeof UserSchema;
+  },
+  /**
+   * A read with no DataStore access, so a benchmark can separate framework dispatch
+   * cost from the SQL-backed reads above.
+   *
+   * @generated from rpc user.v1.UserService.Hello
+   */
+  hello: {
+    methodKind: "unary";
+    input: typeof HelloRequestSchema;
+    output: typeof HelloResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_user, 0);
