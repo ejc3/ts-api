@@ -1,9 +1,11 @@
-# TypeScript API Approaches — REST, GraphQL, tRPC, gRPC (2026)
+# TypeScript API Approaches — REST, GraphQL, tRPC, gRPC, Express (2026)
 
-This repo demos four API styles — REST, GraphQL, tRPC, and gRPC/Connect — on **Vercel or
-Cloudflare**. REST, GraphQL, and tRPC are Web **Fetch API** handlers that share one core and
-both platform adapters. gRPC/Connect is the exception: ConnectRPC has no native edge Fetch
-adapter, so it runs through Connect's Node adapter on the Vercel path.
+This repo demos five API styles — REST, GraphQL, tRPC, gRPC/Connect, and Express — on **Vercel
+or Cloudflare**. REST, GraphQL, and tRPC are Web **Fetch API** handlers that share one core and
+both platform adapters. gRPC/Connect and Express are the exceptions: ConnectRPC has no native
+edge Fetch adapter, and Express binds Node's `http` server, so both run on the Vercel/Node path
+and are absent from the edge build. Express is the Node-only counterpart to the Hono REST demo —
+the same surface on a different framework.
 
 ## TL;DR — the demos
 
@@ -13,6 +15,7 @@ adapter, so it runs through Connect's Node adapter on the Vercel path.
 | **GraphQL** | **GraphQL Yoga** + **Pothos** code-first schema |
 | **tRPC** | `@trpc/server` fetch adapter |
 | **gRPC** | **ConnectRPC** (`@connectrpc/connect`), protobuf services via Connect's Node adapter |
+| **Express** | **Express 5** on Node's `http` server — the REST surface, Vercel-only |
 | **Validation / types** | **Zod** via Standard Schema, swappable for Valibot/ArkType |
 | **Portability** | Web-standard `Request`/`Response`; one core, per-platform entry adapter |
 
@@ -214,11 +217,12 @@ and streaming differ between the platforms, so validate body size and test both 
 
 ```
 src/
-  core/       domain types, Zod schemas, DataStore + Config interfaces, JWT middleware
+  core/       domain types, Zod schemas, DataStore + Config interfaces, stub Bearer check
   rest/       Hono app importing core
   graphql/    Yoga + Pothos importing core
   trpc/       @trpc/server router importing core
   grpc/       ConnectRPC service + generated protobuf, importing core
+  express/    Express 5 app importing core (Node-only)
   adapters/   vercel/ and cloudflare/ entry points only
 ```
 
@@ -226,7 +230,8 @@ src/
   Cloudflare and libSQL/Postgres on Vercel.
 - **Config & secrets** — a `Config` interface loaded per adapter: `process.env` on Vercel,
   `env` binding via `wrangler secret` on Cloudflare.
-- **Auth** — Bearer JWT validated in shared `core` middleware, reused across all four styles.
+- **Auth** — a stub `verifyBearer` check in `core` with the signature a real JWT verifier would
+  have, ready to wire into any style behind one import (no style mounts it yet).
 - **Testing** — Vitest unit tests on schemas/resolvers/handlers; smoke tests run each Fetch
   handler in-process and under `wrangler dev`. CI gate: lint + `tsc --noEmit` + `vitest run`.
 - **Versions** — Node 24 LTS, TypeScript 6.x, Hono 4.x, `graphql-yoga` 5.x, Pothos 4.x,
@@ -240,8 +245,9 @@ src/
 2. **Datastore is SQLite** — D1 on Cloudflare, Turso/libSQL on Vercel, one `DataStore` interface
    over both.
 3. **Subscriptions are in scope** — including the platform-specific transport work for fan-out.
-4. **One deployment** — all four styles under a single deployable if it can be composed cleanly;
-   gRPC/Connect rides the Vercel/Node path within it.
+4. **One deployment where the surface allows it** — the three Fetch styles (REST, GraphQL, tRPC)
+   compose onto a single Hono app, the one edge/Vercel deployable. gRPC/Connect and Express have
+   no edge Fetch adapter, so each rides the Vercel/Node path as its own function.
 5. **Auth is a stub JWT** for now, behind the shared `core` middleware so a real provider can
    replace it later.
 

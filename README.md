@@ -42,7 +42,8 @@ Merging to `main` ships both deployments — there is no manual deploy step.
 - **Vercel** builds on push through the git integration and promotes to production,
   independent of GitHub Actions.
 - **Cloudflare** deploys from a GitHub Action (`wrangler deploy`, [`.github/workflows/deploy-cloudflare.yml`](./.github/workflows/deploy-cloudflare.yml))
-  that runs only after the CI workflow passes on `main`, so a red gate never ships.
+  that runs after the CI workflow passes on `main`, so an automatic deploy never ships on a red
+  gate (a manual `workflow_dispatch` can still deploy on demand).
 
 Measured commit→ready on one merge (`09d773a`):
 
