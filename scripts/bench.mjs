@@ -28,14 +28,21 @@ const STYLES = {
   express: (base) => [`${base}/express/users`, undefined],
 }
 
+function count(flag, value, min) {
+  const n = Math.trunc(Number(value))
+  if (!Number.isFinite(n) || n < min)
+    throw new Error(`${flag} must be an integer >= ${min}, got ${value}`)
+  return n
+}
+
 function parseArgs(argv) {
   const out = { n: 40, warmup: 5 }
   for (let i = 0; i < argv.length; i += 2) {
     const [flag, value] = [argv[i], argv[i + 1]]
     if (flag === '--url') out.url = value
     else if (flag === '--styles') out.styles = value
-    else if (flag === '--n') out.n = Number(value)
-    else if (flag === '--warmup') out.warmup = Number(value)
+    else if (flag === '--n') out.n = count(flag, value, 1)
+    else if (flag === '--warmup') out.warmup = count(flag, value, 0)
     else if (flag === '--label') out.label = value
     else throw new Error(`unknown argument: ${flag}`)
   }

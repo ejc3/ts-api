@@ -50,6 +50,12 @@ describe('/bench (in-process)', () => {
     expect(Object.keys(body.styles)).toEqual(['rest', 'trpc'])
   })
 
+  it('treats a blank styles value as "all", not an empty no-op', async () => {
+    const res = await buildApp().request('/bench?n=1&styles=')
+    const body = (await res.json()) as BenchBody
+    expect(Object.keys(body.styles).sort()).toEqual(['graphql', 'rest', 'trpc'])
+  })
+
   it('rejects loopback mode off Vercel (no trusted origin to call)', async () => {
     const res = await buildApp().request('/bench?mode=loopback&n=1')
     expect(res.status).toBe(400)

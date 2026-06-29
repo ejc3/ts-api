@@ -155,7 +155,8 @@ export function clampN(raw: string | undefined, max: number): number {
 }
 
 export function selectStyles(raw: string | undefined, allowed: readonly string[]): string[] {
-  if (raw === undefined) return [...allowed]
+  // An omitted or blank `styles` means "all" — not an empty, silent no-op.
+  if (raw === undefined || raw.trim() === '') return [...allowed]
   const requested = new Set(raw.split(',').map((s) => s.trim()))
   // Intersect with the fixed allowlist in allowlist order. This dedupes and bounds the
   // result to the allowlist size, so a repeated `styles=rest,rest,...` can't multiply the
