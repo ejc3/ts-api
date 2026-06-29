@@ -62,10 +62,10 @@ commit→ready on gated merges:
 | Platform | commit → ready | breakdown |
 | --- | --- | --- |
 | Cloudflare | ~57 s | ~30 s CI gate (serial) + ~26 s `wrangler deploy` |
-| Vercel | ~60 s | gate overlapped — the ~29 s build runs parallel with CI (the CI-wait was ~2 s); the rest is runner setup, a ~12 s CLI install, and a ~3 s promote |
+| Vercel | ~51 s | gate overlapped — the ~29 s build runs parallel with CI (the CI-wait was ~1 s); the rest is runner setup, a ~5 s CLI install (warm cache; ~12 s cold), and a ~3 s promote |
 
 Vercel's build now overlaps the CI wait, so the gate adds almost nothing to its total (the deploy
-job waited ~2 s for CI); the ~60 s is the deploy job's own setup + CLI install + Vercel build. The
-floor is the ~29 s Vercel build. A Vercel Deploy Hook would drop the CLI install (~50 s) but would
-rebuild main's tip instead of the exact CI-validated commit. The old git auto-deploy was ~25 s but
-shipped regardless of CI.
+job waited ~1 s for CI); the ~51 s is the deploy job's own setup + CLI install + Vercel build (a
+cold CLI cache makes it ~60 s). The floor is the ~29 s Vercel build. A Vercel Deploy Hook would
+drop the CLI install and source upload but would rebuild main's tip instead of the exact
+CI-validated commit. The old git auto-deploy was ~25 s but shipped regardless of CI.
