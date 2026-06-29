@@ -54,13 +54,16 @@ red gate ships nothing.
 
 Each deploy job checks out the exact commit CI validated and smokes its live URL inline; a
 scheduled workflow ([`smoke.yml`](./.github/workflows/smoke.yml)) re-checks both production URLs
-daily. Measured commit→ready on one gated merge (`f4c4257`):
+daily. Measured commit→ready on gated merges:
 
 | Platform | commit → ready | breakdown |
 | --- | --- | --- |
 | Cloudflare | ~57 s | ~30 s CI gate + ~26 s `wrangler deploy` |
-| Vercel | ~97 s | ~27 s CI gate + a ~68 s deploy job (`npm i -g vercel` ~11 s, `vercel build` ~12 s, `vercel deploy` upload ~26 s, runner setup + smoke ~19 s) |
+| Vercel | ~89 s | ~31 s CI gate + a ~58 s deploy (`npm i -g vercel` ~11 s, then `vercel deploy --prod` uploads the source and builds on Vercel's infra ~40 s) |
 
-Gating adds the CI wait (~30 s) that the old Vercel git auto-deploy skipped — that auto-deploy was
-~25 s but shipped regardless of CI. Vercel's gated job is heavier than Cloudflare's because it runs
-a from-scratch CLI build and upload in the runner rather than the platform's own build infra.
+`vercel deploy` (no `--prebuilt`) builds on Vercel's own infra — warm deps and build cache, the
+same fast path the git integration used — so there is no in-runner build. The gate adds the ~30 s
+CI wait the old git auto-deploy skipped (that auto-deploy was ~25 s but shipped regardless of CI).
+What keeps Vercel slower than Cloudflare here is the one-time CLI install and the source upload; a
+Vercel Deploy Hook would shave those (~55 s) but would rebuild main's tip instead of the exact
+CI-validated commit.
