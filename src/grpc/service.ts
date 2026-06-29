@@ -23,5 +23,9 @@ export function registerUserService(store: DataStore) {
         if (name === null) throw new ConnectError('name must not be empty', Code.InvalidArgument)
         return store.createUser({ name })
       },
+      // No DataStore access — a benchmark baseline for framework dispatch alone.
+      hello() {
+        return { message: 'hello world' }
+      },
     })
 }

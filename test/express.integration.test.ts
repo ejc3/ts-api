@@ -53,6 +53,12 @@ describe('Express demo (integration)', () => {
     expect((await fetch(`${base}/users/999`)).status).toBe(404)
   })
 
+  it('says hello without touching the store', async () => {
+    const res = await fetch(`${base}/hello`)
+    expect(res.status).toBe(200)
+    expect(await res.text()).toBe('hello world')
+  })
+
   it('creates a user, trimming the name', async () => {
     const res = await postJson({ name: '  Grace  ' })
     expect(res.status).toBe(201)

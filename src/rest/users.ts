@@ -51,23 +51,28 @@ const createUser = createRoute({
  * types are preserved for a typed `hc` client; `servers` carries the mount base.
  */
 export function createRest(store: DataStore) {
-  return new OpenAPIHono({
-    defaultHook: (result, c) => {
-      if (!result.success) return c.json({ error: 'invalid request' }, 400)
-    },
-  })
-    .openapi(listUsers, async (c) => c.json(await store.listUsers(), 200))
-    .openapi(getUser, async (c) => {
-      const { id } = c.req.valid('param')
-      const user = await store.getUser(id)
-      return user === null ? c.json({ error: 'not found' }, 404) : c.json(user, 200)
+  return (
+    new OpenAPIHono({
+      defaultHook: (result, c) => {
+        if (!result.success) return c.json({ error: 'invalid request' }, 400)
+      },
     })
-    .openapi(createUser, async (c) => c.json(await store.createUser(c.req.valid('json')), 201))
-    .doc('/openapi.json', {
-      openapi: '3.0.0',
-      info: { title: 'ts-api REST', version: '0.0.0' },
-      servers: [{ url: '/api' }],
-    })
+      .openapi(listUsers, async (c) => c.json(await store.listUsers(), 200))
+      .openapi(getUser, async (c) => {
+        const { id } = c.req.valid('param')
+        const user = await store.getUser(id)
+        return user === null ? c.json({ error: 'not found' }, 404) : c.json(user, 200)
+      })
+      .openapi(createUser, async (c) => c.json(await store.createUser(c.req.valid('json')), 201))
+      .doc('/openapi.json', {
+        openapi: '3.0.0',
+        info: { title: 'ts-api REST', version: '0.0.0' },
+        servers: [{ url: '/api' }],
+      })
+      // No store access — a benchmark baseline for framework dispatch alone. Left out of
+      // the OpenAPI doc on purpose; it is a probe, not part of the user-facing contract.
+      .get('/hello', (c) => c.text('hello world'))
+  )
 }
 
 export type RestApp = ReturnType<typeof createRest>

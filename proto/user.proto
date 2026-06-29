@@ -21,8 +21,17 @@ message CreateUserRequest {
   string name = 1;
 }
 
+message HelloRequest {}
+
+message HelloResponse {
+  string message = 1;
+}
+
 service UserService {
   rpc GetUser(GetUserRequest) returns (User);
   rpc ListUsers(ListUsersRequest) returns (ListUsersResponse);
   rpc CreateUser(CreateUserRequest) returns (User);
+  // A read with no DataStore access, so a benchmark can separate framework dispatch
+  // cost from the SQL-backed reads above.
+  rpc Hello(HelloRequest) returns (HelloResponse);
 }

@@ -50,6 +50,10 @@ describe('tRPC (integration)', () => {
     expect(await client.users.create.mutate({ name: 'Grace' })).toMatchObject({ name: 'Grace' })
   })
 
+  it('says hello without touching the store', async () => {
+    expect(await client.hello.query()).toBe('hello world')
+  })
+
   it('rejects an empty or whitespace-only name', async () => {
     await expect(client.users.create.mutate({ name: '' })).rejects.toThrow()
     await expect(client.users.create.mutate({ name: '   ' })).rejects.toThrow()
