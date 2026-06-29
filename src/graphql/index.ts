@@ -1,6 +1,6 @@
 import { createYoga, maskError as defaultMaskError } from 'graphql-yoga'
-import type { DataStore } from '../core/index'
-import { type GraphQLContext, schema } from './schema'
+import type { DataStore } from '../core/index.js'
+import { type GraphQLContext, schema } from './schema.js'
 
 /** Error codes we intentionally raise and are safe to surface to clients. */
 const CLIENT_ERROR_CODES = new Set(['BAD_USER_INPUT', 'NOT_FOUND', 'FORBIDDEN', 'UNAUTHENTICATED'])

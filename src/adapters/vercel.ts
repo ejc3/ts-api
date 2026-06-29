@@ -1,5 +1,5 @@
-import { buildApp } from '../app'
-import { resolveNodeStore } from '../core/turso'
+import { buildApp } from '../app.js'
+import { resolveNodeStore } from '../core/turso.js'
 
 // Node runtime: process.env is available at module load, so the store resolves once —
 // Turso when TURSO_DATABASE_URL is set, else the in-memory demo seed. Config still

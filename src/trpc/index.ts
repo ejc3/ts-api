@@ -1,6 +1,6 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
-import type { DataStore } from '../core/index'
-import { appRouter } from './router'
+import type { DataStore } from '../core/index.js'
+import { appRouter } from './router.js'
 
 /** Build a Fetch handler for the tRPC router, bound to a store and mount path. */
 export function createTrpcHandler(store: DataStore, endpoint: string) {

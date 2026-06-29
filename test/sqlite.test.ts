@@ -1,7 +1,7 @@
 import { createClient } from '@libsql/client'
 import { describe, expect, it } from 'vitest'
-import { DEMO_USERS, type SqlDriver, SqliteStore } from '../src/core/index'
-import { resolveNodeStore, tursoDriver } from '../src/core/turso'
+import { DEMO_USERS, type SqlDriver, SqliteStore } from '../src/core/index.js'
+import { resolveNodeStore, tursoDriver } from '../src/core/turso.js'
 
 const memStore = (seed: readonly { id: string; name: string }[] = DEMO_USERS) =>
   new SqliteStore(tursoDriver(createClient({ url: ':memory:' })), seed)

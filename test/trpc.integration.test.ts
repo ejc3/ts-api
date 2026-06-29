@@ -1,7 +1,7 @@
 import { createTRPCClient, httpBatchLink, type TRPCClient, TRPCClientError } from '@trpc/client'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { buildApp } from '../src/app'
-import type { AppRouter } from '../src/trpc/router'
+import { buildApp } from '../src/app.js'
+import type { AppRouter } from '../src/trpc/router.js'
 
 /** A typed tRPC client whose transport is the in-process composed app. */
 function clientFor(app: ReturnType<typeof buildApp>): TRPCClient<AppRouter> {

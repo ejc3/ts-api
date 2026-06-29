@@ -1,5 +1,5 @@
 import express, { type Express } from 'express'
-import { type DataStore, normalizeUserName } from '../core/index'
+import { type DataStore, normalizeUserName } from '../core/index.js'
 
 /**
  * Express surface over the shared DataStore — the Node-only counterpart to the Hono

@@ -1,8 +1,8 @@
 import { createServer } from 'node:http'
 import type { AddressInfo } from 'node:net'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { type DataStore, DEMO_USERS, InMemoryStore } from '../src/core/index'
-import { createExpressApp } from '../src/express/app'
+import { type DataStore, DEMO_USERS, InMemoryStore } from '../src/core/index.js'
+import { createExpressApp } from '../src/express/app.js'
 
 /** Start an Express app over the given store on a loopback port; returns base URL + close. */
 async function serve(store: DataStore): Promise<{ base: string; close: () => Promise<void> }> {

@@ -1,4 +1,4 @@
-import type { Config, Principal } from './types'
+import type { Config, Principal } from './types.js'
 
 /**
  * STUB auth: treats the bearer token as the user id. Same signature a real JWT

@@ -1,4 +1,4 @@
-import type { User } from './types'
+import type { User } from './types.js'
 
 /** Demo users shared by every style's default store. Non-durable until D1/Turso. */
 export const DEMO_USERS: readonly User[] = [

@@ -1,6 +1,6 @@
 import { connectNodeAdapter } from '@connectrpc/connect-node'
-import type { DataStore } from '../core/index'
-import { registerUserService } from './service'
+import type { DataStore } from '../core/index.js'
+import { registerUserService } from './service.js'
 
 /**
  * Node request handler for the Connect/gRPC service. ConnectRPC has no native edge

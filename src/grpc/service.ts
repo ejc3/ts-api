@@ -1,6 +1,6 @@
 import { Code, ConnectError, type ConnectRouter } from '@connectrpc/connect'
-import { type DataStore, normalizeUserName } from '../core/index'
-import { UserService } from './gen/user_pb'
+import { type DataStore, normalizeUserName } from '../core/index.js'
+import { UserService } from './gen/user_pb.js'
 
 /**
  * Register the Connect UserService over the shared DataStore. Handlers return plain

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { configFromEnv, InMemoryStore, normalizeUserName, verifyBearer } from '../src/core/index'
+import { configFromEnv, InMemoryStore, normalizeUserName, verifyBearer } from '../src/core/index.js'
 
 describe('InMemoryStore', () => {
   it('reads seeded users and returns null for unknown ids', async () => {

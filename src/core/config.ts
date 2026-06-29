@@ -1,4 +1,4 @@
-import type { Config } from './types'
+import type { Config } from './types.js'
 
 /**
  * Build Config from a platform env bag (process.env on Vercel, the env binding on

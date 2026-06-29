@@ -1,4 +1,4 @@
-import type { SqlDriver, SqlRow } from './sqlite'
+import type { SqlDriver, SqlRow } from './sqlite.js'
 
 /**
  * SqlDriver backed by a Cloudflare D1 binding. D1Database is ambient from
