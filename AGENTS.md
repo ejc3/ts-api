@@ -93,3 +93,10 @@ Plain technical prose. Match it in new docs, comments, commit messages, and repl
   global layout). Fan independent review/edit streams out into separate worktrees and run
   them concurrently; remove each once its work merges.
 - **Secrets** never go on argv, never get logged, never appear in any JSON/quiet output.
+- **Session values stay out of the repository.** A value copied from a working session (a
+  shell, an environment variable, a launch command or a transcript) is not useful to the
+  repository and goes stale: profile names, account names, one-off paths, model names, local
+  ports. Don't put one in a file, a comment, a commit message, or a pull request title,
+  description or review comment. Use a variable or a made-up placeholder (`example-profile`,
+  `example-name`). Where something specific has to be named, use its publicly documented
+  identifier. Check the diff, the commit messages and the PR text before every push.
