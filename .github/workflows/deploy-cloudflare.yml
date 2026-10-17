@@ -20,8 +20,18 @@ concurrency:
 
 jobs:
   deploy:
-    # Skip when the triggering CI run failed; always allow a manual dispatch.
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    # Only a green CI run of a PUSH to this repository's own main, or a manual dispatch on main. The
+    # `branches: [main]` filter above matches the triggering run's head BRANCH NAME, which a fork pull
+    # request names itself: a fork PR from a branch called main runs CI, and its green run would check
+    # out and deploy the fork's commit with CLOUDFLARE_API_TOKEN. The event, head repository and branch
+    # checks below rule that out.
+    if: >-
+      ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') ||
+          (github.event_name == 'workflow_run' &&
+           github.event.workflow_run.conclusion == 'success' &&
+           github.event.workflow_run.event == 'push' &&
+           github.event.workflow_run.head_branch == 'main' &&
+           github.event.workflow_run.head_repository.full_name == github.repository) }}
     runs-on: ubuntu-latest
     steps:
       # Deploy the exact commit CI validated, not the moving tip of main — otherwise a
